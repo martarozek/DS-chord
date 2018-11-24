@@ -44,11 +44,11 @@ class TestHashMethods(unittest.TestCase):
 
 
 def get_random_bytes():
-    """Get Random Bits
+    """Get Random Bytes
     Generates a sequence of random bits of a random size between 1 and 1000
     bits in the sequence.
     Returns:
-        A stream of random bits.
+        A stream of random bytes.
     """
     size = random.randrange(1, 1000)
 
