@@ -9,17 +9,17 @@ class node:
     a node in our system
     """
 
-    def __init__(self, ip: str, port: int):
+    def __init__(self, ip: str, port: int) -> None:
         self.ip = ip
         self.port = port
 
-    def look_up(self):
+    def look_up(self) -> None:
         return
 
-    def join(self):
+    def join(self) -> None:
         return
 
-    def create(self):
+    def create(self) -> None:
         return
 
     def add(self, a: int, b: int) -> int:
@@ -34,7 +34,7 @@ class node:
 """
 
 
-def runServer():
+def runServer() -> None:
     n = node("localhost", 8000)
     server = SimpleXMLRPCServer((n.ip, n.port))
     server.register_instance(n)
