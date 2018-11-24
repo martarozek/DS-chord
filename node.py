@@ -13,10 +13,10 @@ class node:
         self.ip = ip
         self.port = port
 
-    def look_up(self) -> None:
+    def look_up(self, key: str) -> None:
         return
 
-    def join(self) -> None:
+    def join(self, n: node) -> None:
         return
 
     def create(self) -> None:
