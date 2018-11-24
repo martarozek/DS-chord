@@ -43,7 +43,7 @@ class TestHashMethods(unittest.TestCase):
         self.assertEqual(first_digest, second_digest)
 
 
-def get_random_bytes():
+def get_random_bytes() -> int:
     """Get Random Bytes
     Generates a sequence of random bits of a random size between 1 and 1000
     bits in the sequence.
