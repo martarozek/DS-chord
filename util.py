@@ -7,5 +7,4 @@ import hashlib
 def hash_ip(ip):
     sha1 = hashlib.sha1()
     sha1.update(("%s" % (ip)).encode("utf-8"))
-    hashedip = sha1.hexdigest()
-    return hashedip
+    return sha1.hexdigest()
