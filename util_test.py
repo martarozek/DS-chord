@@ -4,7 +4,6 @@ from util import hash_ip
 
 
 class TestHashMethods(unittest.TestCase):
-
     def test_sha1_similar(self):
         """ Test Similar SHA-1 Inputs
         Tests sets of messages with 1 bit of difference. Ensures that all
@@ -43,6 +42,7 @@ class TestHashMethods(unittest.TestCase):
 
         self.assertEqual(first_digest, second_digest)
 
+
 def get_random_bytes():
     """Get Random Bits
     Generates a sequence of random bits of a random size between 1 and 1000
@@ -56,5 +56,5 @@ def get_random_bytes():
         yield random.getrandbits(8)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

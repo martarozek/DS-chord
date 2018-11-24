@@ -6,6 +6,6 @@ import hashlib
 # @Returns: hashed IP of the server as a unique identifier
 def hash_ip(ip):
     sha1 = hashlib.sha1()
-    sha1.update(('%s' % (ip)).encode('utf-8'))
+    sha1.update(("%s" % (ip)).encode("utf-8"))
     hashedip = sha1.hexdigest()
     return hashedip
