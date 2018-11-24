@@ -1,6 +1,6 @@
 import unittest
 import random
-from util import hash_ip
+from util import hash_id
 
 
 class TestHashMethods(unittest.TestCase):
@@ -23,8 +23,8 @@ class TestHashMethods(unittest.TestCase):
         first_digest = bytes(first_msg)
         modified_digest = bytes(modified_msg)
 
-        first = hash_ip(first_digest)
-        modified = hash_ip(modified_digest)
+        first = hash_id(first_digest)
+        modified = hash_id(modified_digest)
 
         self.assertNotEqual(first, modified)
 
@@ -37,8 +37,8 @@ class TestHashMethods(unittest.TestCase):
         first_digest = bytes(msg)
         second_digest = bytes(msg)
 
-        first_digest = hash_ip(first_digest)
-        second_digest = hash_ip(second_digest)
+        first_digest = hash_id(first_digest)
+        second_digest = hash_id(second_digest)
 
         self.assertEqual(first_digest, second_digest)
 
