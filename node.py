@@ -4,7 +4,7 @@ import util
 import sys
 
 
-class node:
+class Node:
     """ Main node class representing 
     a node in our system
     """
@@ -16,7 +16,7 @@ class node:
     def look_up(self, key: str) -> None:
         return
 
-    def join(self, n: node) -> None:
+    def join(self, n: Node) -> None:
         return
 
     def create(self) -> None:
@@ -34,8 +34,8 @@ class node:
 """
 
 
-def runServer() -> None:
-    n = node("localhost", 8000)
+def run_server() -> None:
+    n = Node("localhost", 8000)
     server = SimpleXMLRPCServer((n.ip, n.port))
     server.register_instance(n)
 
@@ -48,4 +48,4 @@ def runServer() -> None:
 
 
 if __name__ == "__main__":
-    runServer()
+    run_server()
