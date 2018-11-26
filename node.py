@@ -17,7 +17,7 @@ class Node:
         # self.successor = None
         # self.predecessor = None
 
-        # The Node upon initialization should seek 
+        # The Node upon initialization should seek
         # to join a ring or create one
         self.join(remote_address)
 
@@ -25,7 +25,7 @@ class Node:
         return
 
     def join(self, remote_address: str) -> None:
-        
+
         if remote_address:
             return
         else:
@@ -49,11 +49,15 @@ class Node:
 
 
 def run_server() -> None:
-    n = Node("localhost", 8000)
+    if len(sys.argv) < 3:
+        n = Node("localhost", 8000)
+    else:
+        n = Node(sys.argv[1], int(sys.argv[2]))
+
     server = SimpleXMLRPCServer((n.address, n.port))
     server.register_instance(n)
 
-    print("Serving XML-RPC on localhost port 8000")
+    print("Serving XML-RPC on localhost port %s" % n.port)
     try:
         server.serve_forever()
     except KeyboardInterrupt:
