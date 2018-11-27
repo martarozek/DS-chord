@@ -25,9 +25,19 @@ class Node:
         return
 
     def join(self, remote_address: str) -> None:
-
+        # My logic here is the following:
+        # The remote_address is the app.py
+        # You request from the app, an ip+port so you can join an existing ring or create a new
+        # Otherwise, you cannot join
         if remote_address:
-            return
+            proxy = xmlrpc.client.ServerProxy(remote_address)
+            # ring_address = proxy.request_join(self.address, self.port) not implemented yet
+            ring_address = "http://localhost:8000/"
+
+            if ring_address:
+                print(proxy.add(3, 2))
+            else:
+                self.create()
         else:
             return
 
@@ -36,6 +46,7 @@ class Node:
     def create(self) -> None:
         return
 
+    # Trivial function only for testing server/client calls
     def add(self, a: int, b: int) -> int:
         return a + b
 
@@ -51,8 +62,15 @@ class Node:
 def run_server() -> None:
     if len(sys.argv) < 3:
         n = Node("localhost", 8000)
-    else:
+    elif len(sys.argv) == 3:
         n = Node(sys.argv[1], int(sys.argv[2]))
+    elif len(sys.argv) == 4:
+        # Most common case -> you give a localhost and a port as your "joining address"
+        # The third argument is the app.py address + port where you ask to join a ring
+        n = Node(sys.argv[1], int(sys.argv[2]), sys.argv[3])
+    else:
+        print("\nInvalid number of arguments")
+        sys.exit(0)
 
     server = SimpleXMLRPCServer((n.address, n.port))
     server.register_instance(n)
