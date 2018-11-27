@@ -1,21 +1,18 @@
-def get_key():
-    key_to_get = input("The key? ")
-    print(key_to_get)
+import xmlrpc.client
+from app import get, put
 
-
-def put_key_value():
-    key_to_put = input("The key to put? ")
-    value_to_put = input("The value to put? ")
-    print("Key is: " + key_to_put + "value is" + value_to_put)
-
+with xmlrpc.client.ServerProxy("http://127.0.0.1:8080/") as proxy:
+    print(proxy.put(1, "boy"))
 
 get_or_put = ""
-while get_or_put != "exit":
-        get_or_put = input("Get(g) or put(p)?: ").lower()
-        if get_or_put == "g":
-            get_key()
-        elif get_or_put == "p":
-            put_key_value()
-        else:
-            print("Option not available. Try again.")
 
+while True:
+    get_or_put = input("Get(g) or put(p)?: ").lower()
+    if get_or_put == "exit":
+        break
+    if get_or_put == "g":
+        get()
+    elif get_or_put == "p":
+        put()
+    else:
+        print("Option not available. Try again.")
