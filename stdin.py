@@ -2,7 +2,7 @@ import xmlrpc.client
 from app import get, put
 
 with xmlrpc.client.ServerProxy("http://127.0.0.1:8080/") as proxy:
-    print(proxy.put(1, "boy"))
+    print(proxy.put(1, "2"))
 
 get_or_put = ""
 
