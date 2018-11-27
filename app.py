@@ -8,9 +8,13 @@ nodes = []
 
 def pick_random_node():
     if len(nodes) == 0:
-        return "Null"
-    random_node_index = random.randint(1, len(nodes))
-    print(nodes[random_node_index])
+        print("Null")
+    else:
+        random_node_index = random.randint(0, len(nodes) - 1)
+        print(str(nodes[random_node_index]))
+
+
+pick_random_node()
 
 
 def get(key: int) -> str:
