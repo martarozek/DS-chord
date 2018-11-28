@@ -2,7 +2,7 @@ import sys
 import xmlrpc.client
 from xmlrpc.server import SimpleXMLRPCServer
 
-from util import hash_id, Address
+from util import hash_id, generate_id, Address
 from config import SIZE
 
 
@@ -13,26 +13,64 @@ class Node:
 
     def __init__(self, ip: str, port: int, remote_address: str = None) -> None:
         self.address = Address(ip, port)
-        self.id = self._generate_id("%s:%s" % (self.address.ip, str(self.address.port)))
+        self.id = self.address.get_id()
 
         # Set successor / predecessor
-        # self.successor = None
+        self.successor = Address()
         # self.predecessor = None
+
+        # Key value store
+        self._store = {}
 
         # The Node upon initialization should seek
         # to join a ring or create one
         self._join(remote_address)
 
-    def _generate_id(self, value: str) -> str:
-        return int(hash_id(value), 16) % SIZE
+    # Client gives you a key
+    #
+    def look_up(self, key: str) -> str:
+        id = generate_id(key)
 
-    def look_up(self, key: str) -> None:
-        return
+        return  self.find_successor(id)
 
-    def find_successor(self, id: str) -> 'Node':
-        return
+    def get(self, key: str) -> str:
+        node_address = self.look_up(key)
+        node = xmlrpc.client.ServerProxy(node_address.get_merged())
 
-    def find_predecessor(self, id: str) -> 'Node':
+        return node._get(key)
+
+    def put(self, key: str, value: str) -> None:
+        node_address = self.look_up(key)
+        node = xmlrpc.client.ServerProxy(node_address.get_merged())
+
+        node._put(key, value)
+
+    def _get(self, key: str) -> str:
+        if key in self._store:
+            return self._store[key]
+        return None
+
+    def _put(self, key: str, value: str) -> None:
+        self._store[key] = value
+
+    def in_range(self, id: int, a: int, b: int) -> bool:
+        if a < b:
+            return id > a and id <= b
+        return id > a or id <= b
+
+    def find_successor(self, id: str) -> Address:
+
+        if not self.successor:
+            return self.address
+
+        succ_id = self.successor.get_id()
+        if self.in_range(id, self.id, succ_id):
+            return self.successor
+        else:
+            node = xmlrpc.client.ServerProxy(self.successor.get_merged())
+            return node.find_successor(id)
+
+    def find_predecessor(self, id: str) -> "Node":
         return
 
     def _join(self, remote_address: str) -> None:
@@ -41,11 +79,15 @@ class Node:
         # You request from the app, an ip+port so you can join an existing ring or create a new
         # Otherwise, you cannot join
         if remote_address:
-            proxy = xmlrpc.client.ServerProxy(remote_address)
-            # ring_address = proxy.request_join(self.address) not implemented yet
-            ring_address = "http://localhost:8000/"
+            app = xmlrpc.client.ServerProxy(remote_address)
+
+            # Get a Node's address from the APP
+            ring_address = app.request_join(self.address)
+            # ring_address = "http://localhost:8000/"
             if ring_address:
-                print(proxy.add(3, 2))
+                # Join
+                node = xmlrpc.client.ServerProxy(ring_address.get_merged())
+                self.successor = node.find_successor(self.id)
             else:
                 self._create()
         else:
@@ -53,7 +95,10 @@ class Node:
 
         return
 
+    # In case a node joins or creates a ring
+    # It should send a confirmation to the APP
     def _create(self) -> None:
+        # Message the APP
         return
 
     # Trivial function only for testing server/client calls

@@ -1,5 +1,5 @@
 import hashlib
-
+from config import SIZE
 
 # Simple SHA-1 hash function as mentioned in CHORD protocol paper
 # @Parameters: id
@@ -9,12 +9,21 @@ def hash_id(id: str) -> str:
     sha1.update(("%s" % (id)).encode("utf-8"))
     return sha1.hexdigest()
 
+def generate_id(key: str) -> int:
+    return int(hash_id(key), 16) % SIZE
+
 
 class Address:
-    def __init__(self, ip: str, port: int) -> None:
+    def __init__(self, ip: str='', port: int=0) -> None:
         self.ip = ip
         self.port = port
 
     def get_merged(self, https=False) -> str:
         protocol = "https" if https else "http"
         return f"{protocol}://{self.ip}:{self.port}"
+
+    def get_id(self) -> int:
+        if not self.ip:
+            return None
+        return generate_id(self.get_merged())
+
