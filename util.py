@@ -1,6 +1,4 @@
 import hashlib
-
-
 # Simple SHA-1 hash function as mentioned in CHORD protocol paper
 # @Parameters: id
 # @Returns: hashed id
