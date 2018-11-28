@@ -3,6 +3,9 @@
 
 # --Variables will be declared, people will not be happy--
 
-# Initial size of ring 64
-LOGSIZE = 5
+# Maximal size of the ring will be 64
+LOGSIZE = 6
 SIZE = 1 << LOGSIZE
+
+APP_IP = "127.0.0.1"
+APP_PORT = 8000
