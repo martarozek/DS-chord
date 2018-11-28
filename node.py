@@ -2,8 +2,8 @@ import sys
 import xmlrpc.client
 from xmlrpc.server import SimpleXMLRPCServer
 
-from util import *
-from configurations import *
+from util import hash_id, Address
+from config import SIZE
 
 
 class Node:
