@@ -26,13 +26,15 @@ class Node:
         # to join a ring or create one
         self._join(remote_address)
 
-    # Client gives you a key
-    #
-    def look_up(self, key: str) -> str:
+    # Looks up for a key, or where it would be placed
+    # based on the existing ring
+    def look_up(self, key: str) -> Address:
         id = generate_id(key)
 
         return self.find_successor(id)
 
+    # Returns a value from the store based on its key
+    # None if not found
     def get(self, key: str) -> str:
         node_address = self.look_up(key)
 
@@ -42,37 +44,43 @@ class Node:
         node = xmlrpc.client.ServerProxy(node_address.get_merged())
         return node._get(key)
 
+    # Stores a value in the store based on key-value mapping
     def put(self, key: str, value: str) -> str:
         node_address = self.look_up(key)
 
         if node_address == self.address:
-            print ('PUT')
+            print("PUT")
             return self._put(key, value)
 
         node = xmlrpc.client.ServerProxy(node_address.get_merged())
         return node._put(key, value)
-        
 
+    # Internal get, accesses the store using a key
+    # returns its coressponding value
     def _get(self, key: str) -> str:
         if key in self._store:
             return self._store[key]
         return None
 
+    # Internal put, stores a value in the store
+    # using a key - value mapping
     def _put(self, key: str, value: str) -> str:
         self._store[key] = value
         return self._store[key]
 
+    # Checks if id is within the range of two nodes
     def in_range(self, id: int, a: int, b: int) -> bool:
         if a < b:
             return id > a and id <= b
         return id > a or id <= b
 
+    # Finds the successor of the node based on the id
     def find_successor(self, id: str) -> Address:
-        print ('FIND_SUCCESSOR')
+        print("FIND_SUCCESSOR")
 
         if self.successor.is_empty():
             return self.address
-        print ('FIND_SUCCESSOR_2')
+        print("FIND_SUCCESSOR_2")
 
         succ_id = self.successor.get_id()
         if self.in_range(id, self.id, succ_id):
@@ -81,9 +89,11 @@ class Node:
             node = xmlrpc.client.ServerProxy(self.successor.get_merged())
             return node.find_successor(id)
 
+    # TBD
     def find_predecessor(self, id: str) -> "Node":
         return
 
+    # Join an existing ring or create one
     def _join(self, remote_address: str) -> None:
         # My logic here is the following:
         # The remote_address is the app.py
@@ -94,7 +104,7 @@ class Node:
 
             # Get a Node's address from the APP
             # ring_address = app.request_join(self.address)
-            ring_address = Address('localhost', 8000)
+            ring_address = Address("localhost", 8000)
             if ring_address:
                 # Join
                 node = xmlrpc.client.ServerProxy(ring_address.get_merged())
