@@ -8,14 +8,14 @@ from configurations import *
 
 class Node:
     """ Main node class representing 
-    a node in our system
+    a node in our peer-2-peer system
     """
 
     def __init__(self, address: str, port: int, remote_address: str = None) -> None:
         self.address = address
         self.port = port
         self.id = self.generate_id("%s:%s" % (self.address, str(self.port)))
-        
+
         # Set successor / predecessor
         # self.successor = None
         # self.predecessor = None
