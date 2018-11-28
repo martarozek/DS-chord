@@ -31,27 +31,36 @@ class Node:
     def look_up(self, key: str) -> str:
         id = generate_id(key)
 
-        return  self.find_successor(id)
+        return self.find_successor(id)
 
     def get(self, key: str) -> str:
         node_address = self.look_up(key)
-        node = xmlrpc.client.ServerProxy(node_address.get_merged())
 
+        if node_address == self.address:
+            return self._get(key)
+
+        node = xmlrpc.client.ServerProxy(node_address.get_merged())
         return node._get(key)
 
-    def put(self, key: str, value: str) -> None:
+    def put(self, key: str, value: str) -> str:
         node_address = self.look_up(key)
-        node = xmlrpc.client.ServerProxy(node_address.get_merged())
 
-        node._put(key, value)
+        if node_address == self.address:
+            print ('PUT')
+            return self._put(key, value)
+
+        node = xmlrpc.client.ServerProxy(node_address.get_merged())
+        return node._put(key, value)
+        
 
     def _get(self, key: str) -> str:
         if key in self._store:
             return self._store[key]
         return None
 
-    def _put(self, key: str, value: str) -> None:
+    def _put(self, key: str, value: str) -> str:
         self._store[key] = value
+        return self._store[key]
 
     def in_range(self, id: int, a: int, b: int) -> bool:
         if a < b:
@@ -59,9 +68,11 @@ class Node:
         return id > a or id <= b
 
     def find_successor(self, id: str) -> Address:
+        print ('FIND_SUCCESSOR')
 
-        if not self.successor:
+        if self.successor.is_empty():
             return self.address
+        print ('FIND_SUCCESSOR_2')
 
         succ_id = self.successor.get_id()
         if self.in_range(id, self.id, succ_id):
@@ -82,8 +93,8 @@ class Node:
             app = xmlrpc.client.ServerProxy(remote_address)
 
             # Get a Node's address from the APP
-            ring_address = app.request_join(self.address)
-            # ring_address = "http://localhost:8000/"
+            # ring_address = app.request_join(self.address)
+            ring_address = Address('localhost', 8000)
             if ring_address:
                 # Join
                 node = xmlrpc.client.ServerProxy(ring_address.get_merged())

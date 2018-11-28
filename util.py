@@ -22,8 +22,14 @@ class Address:
         protocol = "https" if https else "http"
         return f"{protocol}://{self.ip}:{self.port}"
 
+    def is_empty(self) -> bool:
+        return not self.ip
+
     def get_id(self) -> int:
         if not self.ip:
             return None
         return generate_id(self.get_merged())
+
+    def __eq__(self, other) -> bool:
+        return self.ip == other.ip and self.port == other.port
 
