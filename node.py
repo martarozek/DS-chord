@@ -77,7 +77,7 @@ class Node:
             else:
                 self._create()
 
-            app.confirm_join(self.address)
+            app.confirm_join(self.address.get_merged())
 
     def _join(self, ring_address: str) -> None:
         print(ring_address)
@@ -85,6 +85,7 @@ class Node:
         self._successor = random_node.find_successor(self._id)
 
     def _create(self) -> None:
+        print ("-- Ring Created -- Initial Node -- ")
         return
 
 
