@@ -1,4 +1,6 @@
 import xmlrpc.client
 
-s = xmlrpc.client.ServerProxy("http://localhost:8000")
-print(s.add(2, 3))
+from config import APP_IP, APP_PORT
+
+store = xmlrpc.client.ServerProxy((APP_IP, APP_PORT))
+print(store.put("a", "b"))
