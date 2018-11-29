@@ -8,8 +8,8 @@ from util import generate_id, in_range, Address
 
 class Node:
     def __init__(self, ip: str, port: int, app_address: str = None) -> None:
-        self._address = Address(ip, port)
-        self._id = self._address.get_id()
+        self.address = Address(ip, port)
+        self._id = self.address.get_id()
         self._store = {}
 
         self._successor = Address()
@@ -20,32 +20,19 @@ class Node:
         # start the stabilize and fixfingers daemons
         self._join_or_create(self._app)
 
-    @property
-    def address(self):
-        return self._address
-
-    @property
-    def ip(self):
-        return self._address._ip
-
-    @property
-    def port(self):
-        return self._address._port
-
     def get(self, key: str) -> str:
         node_address = self._look_up(key)
 
-        if node_address == self._address:
+        if node_address == self.address:
             return self._get(key)
 
         node = ServerProxy(node_address.get_merged())
         return node.get(key)
 
     def put(self, key: str, value: str) -> str:
-        print("NODE PUT")
         node_address = self._look_up(key)
 
-        if node_address == self._address:
+        if node_address == self.address:
             return self._put(key, value)
 
         node = ServerProxy(node_address.get_merged())
@@ -53,7 +40,7 @@ class Node:
 
     def find_successor(self, id: int) -> Address:
         if not self._successor:
-            return self._address
+            return self.address
 
         successor_id = self._successor.get_id()
         if in_range(id, self._id, successor_id):
@@ -84,13 +71,13 @@ class Node:
         else:
             app = ServerProxy(app_address)
 
-            ring_address = app.request_join(self._address.get_merged())
+            ring_address = app.request_join(self.address.get_merged())
             if ring_address:
                 self._join(ring_address)
             else:
                 self._create()
 
-            app.confirm_join(self._address)
+            app.confirm_join(self.address)
 
     def _join(self, ring_address: str) -> None:
         print(ring_address)
@@ -125,10 +112,10 @@ def run_server() -> None:
 
     node = Node(args.ip, args.port, args.app)
 
-    server = SimpleXMLRPCServer((node._address._ip, node._address._port))
+    server = SimpleXMLRPCServer((node.address.ip, node.address.port))
     server.register_instance(node)
 
-    print(f"Serving XML-RPC on {node._address._ip} port {node._address._port}")
+    print(f"Serving XML-RPC on {node.address.ip} port {node.address.port}")
     try:
         server.serve_forever()
     except KeyboardInterrupt:

@@ -25,27 +25,19 @@ class Protocol:
 
 class Address:
     def __init__(self, ip: str = "", port: int = 0) -> None:
-        self._ip = ip
-        self._port = port
+        self.ip = ip
+        self.port = port
 
     @classmethod
     def from_merged(cls: "Address", merged: str) -> "Address":
         proto = Protocol.HTTP if Protocol.HTTP in merged else Protocol.HTTPS
         merged = merged.replace(f"{proto}://", "")
         split = merged.split(":")
-        return Address(split[0], int(split[1]))
-
-    @property
-    def ip(self):
-        return self._ip
-
-    @property
-    def port(self):
-        return self._port
+        return cls(split[0], int(split[1]))
 
     @property
     def is_empty(self) -> bool:
-        return not self._ip
+        return not self.ip
 
     def __str__(self):
         return self.get_merged()
@@ -55,12 +47,12 @@ class Address:
 
     def get_merged(self, https=False) -> str:
         protocol = Protocol.HTTPS if https else Protocol.HTTP
-        return f"{protocol}://{self._ip}:{self._port}"
+        return f"{protocol}://{self.ip}:{self.port}"
 
     def get_id(self) -> int:
-        if not self._ip or not self._port:
+        if not self.ip or not self.port:
             return 0
         return generate_id(self.get_merged())
 
     def __eq__(self, other) -> bool:
-        return self._ip == other.ip and self._port == other.port
+        return self.ip == other.ip and self.port == other.port

@@ -38,13 +38,12 @@ class App:
             return self._nodes[random_node_index]
 
     def run_server(self):
-        server = SimpleXMLRPCServer((self._address._ip, self._address._port))
-        # server.register_function(self.get)
-        # server.register_function(self.put)
-        # server.register_function(self.request_join)
-        # server.register_function(self.confirm_join)
-        server.register_instance(self)
-        print("Serving XML-RPC on %s port %s" % (app._address._ip, app._address._port))
+        server = SimpleXMLRPCServer((self._address.ip, self._address.port))
+        server.register_function(self.get)
+        server.register_function(self.put)
+        server.register_function(self.request_join)
+        server.register_function(self.confirm_join)
+        print("Serving XML-RPC on %s port %s" % (app._address.ip, app._address.port))
         try:
             server.serve_forever()
         except KeyboardInterrupt:

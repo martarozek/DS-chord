@@ -64,8 +64,8 @@ class TestAddress(unittest.TestCase):
 
         address = Address.from_merged(merged)
 
-        self.assertEqual("localhost", address._ip)
-        self.assertEqual(4242, address._port)
+        self.assertEqual("localhost", address.ip)
+        self.assertEqual(4242, address.port)
 
 
 if __name__ == "__main__":
