@@ -22,6 +22,16 @@ class Address:
         protocol = "https" if https else "http"
         return f"{protocol}://{self.ip}:{self.port}"
 
+    @staticmethod
+    def from_merged(combined_address: str) -> 'Address':
+        new_set = ''
+        if "http" in combined_address:
+            new_set = combined_address.replace("http://", "")
+        else:
+            new_set = combined_address.replace("https://", "")
+        splitter = new_set.split(":")
+        return Address(splitter[0], int(splitter[1]))
+
     def is_empty(self) -> bool:
         return not self.ip
 

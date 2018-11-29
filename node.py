@@ -103,17 +103,21 @@ class Node:
             app = xmlrpc.client.ServerProxy(remote_address)
 
             # Get a Node's address from the APP
-            # ring_address = app.request_join(self.address)
-            ring_address = Address("localhost", 8000)
-            if ring_address:
+            ring_address = app.request_join(self.address.get_merged())
+            # ring_address = Address("localhost", 8000)
+            address = Address().from_merged(ring_address)
+            print(address.ip)
+            print(address.port)
+            if not ring_address.is_empty():
                 # Join
                 node = xmlrpc.client.ServerProxy(ring_address.get_merged())
                 self.successor = node.find_successor(self.id)
             else:
                 self._create()
+            app.confirm_join(self.address)
         else:
-            return
-
+            print ("Remote Address not specified! -- Find the app!")
+            sys.exit(0)
         return
 
     # In case a node joins or creates a ring
