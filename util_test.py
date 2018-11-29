@@ -1,18 +1,12 @@
 import unittest
 import random
 from typing import Generator
-from util import hash_id, Address
+from util import hash_key, Address
 
 
 class TestHashMethods(unittest.TestCase):
     @staticmethod
-    def _get_random_bytes() -> Generator[None, int, None]:
-        """Get Random Bytes
-        Generates a sequence of random bits of a random size between 1 and 1000
-        bits in the sequence.
-        Returns:
-            A stream of random bytes.
-        """
+    def _get_random_bits() -> Generator[int, None, None]:
         size = random.randrange(1, 1000)
 
         for _ in range(size):
@@ -24,7 +18,7 @@ class TestHashMethods(unittest.TestCase):
         messages produce unique hashes.
         """
 
-        first_msg = bytearray(self._get_random_bytes())
+        first_msg = bytearray(self._get_random_bits())
         modified_msg = bytearray()
 
         # Pick a random byte, modify it by one bit
@@ -37,8 +31,8 @@ class TestHashMethods(unittest.TestCase):
         first_digest = str(first_msg)
         modified_digest = str(modified_msg)
 
-        first = hash_id(first_digest)
-        modified = hash_id(modified_digest)
+        first = hash_key(first_digest)
+        modified = hash_key(modified_digest)
 
         self.assertNotEqual(first, modified)
 
@@ -47,12 +41,12 @@ class TestHashMethods(unittest.TestCase):
         Runs the SHA-1 hashing function multiple times to ensure the same
         outcome for any identical message input.
         """
-        msg = bytearray(self._get_random_bytes())
+        msg = bytearray(self._get_random_bits())
         first_digest = str(msg)
         second_digest = str(msg)
 
-        first_digest = hash_id(first_digest)
-        second_digest = hash_id(second_digest)
+        first_digest = hash_key(first_digest)
+        second_digest = hash_key(second_digest)
 
         self.assertEqual(first_digest, second_digest)
 
@@ -64,6 +58,14 @@ class TestAddress(unittest.TestCase):
         merged = add.get_merged()
 
         self.assertEqual("http://localhost:4242", merged)
+
+    def test_from_merged(self):
+        merged = "http://localhost:4242"
+
+        address = Address.from_merged(merged)
+
+        self.assertEqual("localhost", address._ip)
+        self.assertEqual(4242, address._port)
 
 
 if __name__ == "__main__":

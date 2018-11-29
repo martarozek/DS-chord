@@ -1,161 +1,134 @@
+import argparse
 import sys
-import xmlrpc.client
+from xmlrpc.client import ServerProxy
 from xmlrpc.server import SimpleXMLRPCServer
 
-from util import hash_id, generate_id, Address
-from config import SIZE
+from util import generate_id, in_range, Address
 
 
 class Node:
-    """ Main node class representing 
-    a node in our peer-2-peer system
-    """
-
-    def __init__(self, ip: str, port: int, remote_address: str = None) -> None:
-        self.address = Address(ip, port)
-        self.id = self.address.get_id()
-
-        # Set successor / predecessor
-        self.successor = Address()
-        # self.predecessor = None
-
-        # Key value store
+    def __init__(self, ip: str, port: int, app_address: str = None) -> None:
+        self._address = Address(ip, port)
+        self._id = self._address.get_id()
         self._store = {}
 
-        # The Node upon initialization should seek
-        # to join a ring or create one
-        self._join(remote_address)
+        self._successor = Address()
+        self._predecessor = Address()
 
-    # Looks up for a key, or where it would be placed
-    # based on the existing ring
-    def look_up(self, key: str) -> Address:
-        id = generate_id(key)
+        self._app = app_address
 
-        return self.find_successor(id)
+        # start the stabilize and fixfingers daemons
+        self._join_or_create(self._app)
 
-    # Returns a value from the store based on its key
-    # None if not found
+    @property
+    def address(self):
+        return self._address
+
+    @property
+    def ip(self):
+        return self._address._ip
+
+    @property
+    def port(self):
+        return self._address._port
+
     def get(self, key: str) -> str:
-        node_address = self.look_up(key)
+        node_address = self._look_up(key)
 
-        if node_address == self.address:
+        if node_address == self._address:
             return self._get(key)
 
-        node = xmlrpc.client.ServerProxy(node_address.get_merged())
-        return node._get(key)
+        node = ServerProxy(node_address.get_merged())
+        return node.get(key)
 
-    # Stores a value in the store based on key-value mapping
     def put(self, key: str, value: str) -> str:
-        node_address = self.look_up(key)
+        print("NODE PUT")
+        node_address = self._look_up(key)
 
-        if node_address == self.address:
-            print("PUT")
+        if node_address == self._address:
             return self._put(key, value)
 
-        node = xmlrpc.client.ServerProxy(node_address.get_merged())
-        return node._put(key, value)
+        node = ServerProxy(node_address.get_merged())
+        return node.put(key, value)
 
-    # Internal get, accesses the store using a key
-    # returns its coressponding value
+    def find_successor(self, id: int) -> Address:
+        if not self._successor:
+            return self._address
+
+        successor_id = self._successor.get_id()
+        if in_range(id, self._id, successor_id):
+            return self._successor
+        else:
+            my_successor = ServerProxy(self._successor.get_merged())
+            return my_successor.find_successor(id)
+
+    # TBD
+    def find_predecessor(self, id: str) -> Address:
+        return Address()
+
+    def _look_up(self, key: str) -> Address:
+        return self.find_successor(generate_id(key))
+
     def _get(self, key: str) -> str:
         if key in self._store:
             return self._store[key]
-        return None
+        return ""
 
-    # Internal put, stores a value in the store
-    # using a key - value mapping
     def _put(self, key: str, value: str) -> str:
         self._store[key] = value
         return self._store[key]
 
-    # Checks if id is within the range of two nodes
-    def in_range(self, id: int, a: int, b: int) -> bool:
-        if a < b:
-            return id > a and id <= b
-        return id > a or id <= b
-
-    # Finds the successor of the node based on the id
-    def find_successor(self, id: str) -> Address:
-        print("FIND_SUCCESSOR")
-
-        if self.successor.is_empty():
-            return self.address
-        print("FIND_SUCCESSOR_2")
-
-        succ_id = self.successor.get_id()
-        if self.in_range(id, self.id, succ_id):
-            return self.successor
+    def _join_or_create(self, app_address: str) -> None:
+        if not app_address:
+            print("Remote Address not specified! -- Find the app!")
         else:
-            node = xmlrpc.client.ServerProxy(self.successor.get_merged())
-            return node.find_successor(id)
+            app = ServerProxy(app_address)
 
-    # TBD
-    def find_predecessor(self, id: str) -> "Node":
-        return
-
-    # Join an existing ring or create one
-    def _join(self, remote_address: str) -> None:
-        # My logic here is the following:
-        # The remote_address is the app.py
-        # You request from the app, an ip+port so you can join an existing ring or create a new
-        # Otherwise, you cannot join
-        if remote_address:
-            app = xmlrpc.client.ServerProxy(remote_address)
-
-            # Get a Node's address from the APP
-            ring_address = app.request_join(self.address.get_merged())
-            # ring_address = Address("localhost", 8000)
-            address = Address().from_merged(ring_address)
-            print(address.ip)
-            print(address.port)
-            if not ring_address.is_empty():
-                # Join
-                node = xmlrpc.client.ServerProxy(ring_address.get_merged())
-                self.successor = node.find_successor(self.id)
+            ring_address = app.request_join(self._address.get_merged())
+            if ring_address:
+                self._join(ring_address)
             else:
                 self._create()
-            app.confirm_join(self.address)
-        else:
-            print ("Remote Address not specified! -- Find the app!")
-            sys.exit(0)
-        return
 
-    # In case a node joins or creates a ring
-    # It should send a confirmation to the APP
+            app.confirm_join(self._address)
+
+    def _join(self, ring_address: str) -> None:
+        print(ring_address)
+        random_node = ServerProxy(ring_address)
+        self._successor = random_node.find_successor(self._id)
+
     def _create(self) -> None:
-        # Message the APP
         return
-
-    # Trivial function only for testing server/client calls
-    def add(self, a: int, b: int) -> int:
-        return a + b
-
-
-"""
-1. Initialize a node and a server
-2. Register node instance to server
-3. Server the server's main loop
-4. Exit on Control-C 
-"""
 
 
 def run_server() -> None:
-    if len(sys.argv) < 3:
-        n = Node("localhost", 8000)
-    elif len(sys.argv) == 3:
-        n = Node(sys.argv[1], int(sys.argv[2]))
-    elif len(sys.argv) == 4:
-        # Most common case -> you give a localhost and a port as your "joining address"
-        # The third argument is the app.py address + port where you ask to join a ring
-        n = Node(sys.argv[1], int(sys.argv[2]), sys.argv[3])
-    else:
-        print("\nInvalid number of arguments")
-        sys.exit(0)
+    parser = argparse.ArgumentParser(description="Start a Chord node.")
+    parser.add_argument(
+        "--ip",
+        type=str,
+        default="localhost",
+        required=False,
+        help="ip address of the node",
+    )
+    parser.add_argument(
+        "--port", type=int, default="8080", required=False, help="port of the node"
+    )
+    parser.add_argument(
+        "--app",
+        type=str,
+        default="http://localhost:8000",
+        required=False,
+        help="address of the app, {protocol}://{ip}:{port}",
+    )
 
-    server = SimpleXMLRPCServer((n.address.ip, n.address.port))
-    server.register_instance(n)
+    args = parser.parse_args()
 
-    print("Serving XML-RPC on %s port %s" % (n.address.ip, n.address.port))
+    node = Node(args.ip, args.port, args.app)
+
+    server = SimpleXMLRPCServer((node._address._ip, node._address._port))
+    server.register_instance(node)
+
+    print(f"Serving XML-RPC on {node._address._ip} port {node._address._port}")
     try:
         server.serve_forever()
     except KeyboardInterrupt:
