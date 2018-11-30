@@ -16,6 +16,10 @@ class App:
     def get(self, key: str) -> str:
         random_node = self._pick_random_node()
         with ServerProxy(random_node) as node:
+            v = node.get(key)
+            print('APP')
+            print(type(v))
+            print(v)
             return node.get(key)
 
     def put(self, key: str, value: str) -> str:
