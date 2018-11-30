@@ -18,7 +18,32 @@ class Node:
         self._app = app_address
 
         # start the stabilize and fixfingers daemons
+        self._daemons = []
         self._join_or_create(self._app)
+
+    def _stabilize(self) -> None:
+        # x = successor.predecessor
+        x = self._successor
+        if not x:
+            return
+        
+        succ = ServerProxy(x.get_merged())
+        pred = succ._stabilize_get_successors_predecessor()
+        if pred:
+            pred_address = Address.from_merged(pred)
+            pred_id = pred_address.get_id()
+
+            if pred_id == self._id:
+
+            if in_range(pred_id, self._id, self._successor):
+
+        return
+
+    def _stabilize_get_successors_predecessor(self) -> str:
+        if self._predecessor:
+            return self._predecessor.get_merged()
+        print ("STABILIZE_GET_SUCCESSORS_PREDECESSOR = PREDECESSOR NOT FOUND")
+        return ""
 
     def get(self, key: str) -> str:
         node_address = self._look_up(key)
@@ -86,6 +111,7 @@ class Node:
 
     def _create(self) -> None:
         print ("-- Ring Created -- Initial Node -- ")
+        # self._successor = self.address -> WIP
         return
 
 
