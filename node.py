@@ -23,37 +23,37 @@ class Node:
     def get(self, key: str) -> str:
         node_address = self._look_up(key)
 
-        if node_address == self.address:
+        if node_address == self.address.get_merged():
             return self._get(key)
 
-        node = ServerProxy(node_address.get_merged())
+        node = ServerProxy(node_address)
         return node.get(key)
 
     def put(self, key: str, value: str) -> str:
         node_address = self._look_up(key)
 
-        if node_address == self.address:
+        if node_address == self.address.get_merged():
             return self._put(key, value)
 
-        node = ServerProxy(node_address.get_merged())
+        node = ServerProxy(node_address)
         return node.put(key, value)
 
-    def find_successor(self, id: int) -> Address:
+    def find_successor(self, id: int) -> str:
         if not self._successor:
-            return self.address
+            return self.address.get_merged()
 
         successor_id = self._successor.get_id()
         if in_range(id, self._id, successor_id):
-            return self._successor
+            return self._successor.get_merged()
         else:
             my_successor = ServerProxy(self._successor.get_merged())
             return my_successor.find_successor(id)
 
     # TBD
-    def find_predecessor(self, id: str) -> Address:
-        return Address()
+    def find_predecessor(self, id: str) -> str:
+        return Address().get_merged()
 
-    def _look_up(self, key: str) -> Address:
+    def _look_up(self, key: str) -> str:
         return self.find_successor(generate_id(key))
 
     def _get(self, key: str) -> str:
@@ -77,19 +77,24 @@ class Node:
             else:
                 self._create()
 
-            app.confirm_join(self.address.get_merged())
-
     def _join(self, ring_address: str) -> None:
-        print(ring_address)
         random_node = ServerProxy(ring_address)
-        self._successor = random_node.find_successor(self._id)
+        self._successor = Address.from_merged(random_node.find_successor(self._id))
 
     def _create(self) -> None:
         print ("-- Ring Created -- Initial Node -- ")
         return
 
+    def run_server(self) -> None:
+        app = ServerProxy(self._app)
+        app.confirm_join(self.address.get_merged())
 
-def run_server() -> None:
+        server = SimpleXMLRPCServer((self.address.ip, self.address.port))
+        server.register_instance(self)
+        server.serve_forever()
+
+
+if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Start a Chord node.")
     parser.add_argument(
         "--ip",
@@ -99,7 +104,8 @@ def run_server() -> None:
         help="ip address of the node",
     )
     parser.add_argument(
-        "--port", type=int, default="8080", required=False, help="port of the node"
+        "--port", type=int, default="8080", required=False,
+        help="port of the node"
     )
     parser.add_argument(
         "--app",
@@ -110,19 +116,11 @@ def run_server() -> None:
     )
 
     args = parser.parse_args()
-
     node = Node(args.ip, args.port, args.app)
-
-    server = SimpleXMLRPCServer((node.address.ip, node.address.port))
-    server.register_instance(node)
-
     print(f"Serving XML-RPC on {node.address.ip} port {node.address.port}")
+
     try:
-        server.serve_forever()
+        node.run_server()
     except KeyboardInterrupt:
         print("\nKeyboard interrupt received, exiting.")
         sys.exit(0)
-
-
-if __name__ == "__main__":
-    run_server()
