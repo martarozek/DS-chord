@@ -34,9 +34,9 @@ class Node:
             pred_id = pred_address.get_id()
 
             if pred_id == self._id:
-
+                return
             if in_range(pred_id, self._id, self._successor):
-
+                return
         return
 
     def _stabilize_get_successors_predecessor(self) -> str:
