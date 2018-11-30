@@ -21,6 +21,10 @@ class App:
             raise Fault(500, "No nodes available")
 
         with ServerProxy(random_node) as node:
+            v = node.get(key)
+            print('APP')
+            print(type(v))
+            print(v)
             return node.get(key)
 
     def put(self, key: str, value: str) -> str:
