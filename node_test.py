@@ -1,12 +1,12 @@
 import unittest
 import xmlrpc.client
 
-from util import Address
+from util import get_url
 from config import APP_PORT, APP_IP
 
 
 def get_client():
-    app_address = Address(APP_IP, APP_PORT).get_merged()
+    app_address = get_url(APP_IP, APP_PORT)
 
     return xmlrpc.client.ServerProxy(app_address)
 

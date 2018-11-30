@@ -3,13 +3,15 @@ import sys
 from xmlrpc.client import ServerProxy, Fault
 from xmlrpc.server import SimpleXMLRPCServer
 
-from util import Address
+from util import get_url
 from config import APP_PORT, APP_IP
 
 
 class App:
     def __init__(self, ip: str, port: int) -> None:
-        self._address = Address(ip, port)
+        self._address = get_url(ip, port)
+        self.ip = ip
+        self.port = port
         self._nodes = []
         random.seed()
 
@@ -44,21 +46,21 @@ class App:
             return self._nodes[random_node_index]
 
     def run_server(self):
-        server = SimpleXMLRPCServer((self._address.ip, self._address.port))
+        server = SimpleXMLRPCServer((self.ip, self.port))
 
         server.register_function(self.get)
         server.register_function(self.put)
         server.register_function(self.request_join)
         server.register_function(self.confirm_join)
 
-        print(f"Serving XML-RPC on {self._address.ip} port {self._address.port}")
-        try:
-            server.serve_forever()
-        except KeyboardInterrupt:
-            print("\nKeyboard interrupt received, exiting.")
-            sys.exit(0)
+        server.serve_forever()
 
 
 if __name__ == "__main__":
     app = App(APP_IP, APP_PORT)
-    app.run_server()
+    print(f"Serving App on {APP_IP} port {APP_PORT}")
+    try:
+        app.run_server()
+    except KeyboardInterrupt:
+        print("\nKeyboard interrupt received, exiting.")
+        sys.exit(0)
