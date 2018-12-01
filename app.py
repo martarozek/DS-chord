@@ -1,5 +1,6 @@
 import random
 import sys
+from typing import List
 from xmlrpc.client import ServerProxy, Fault
 from xmlrpc.server import SimpleXMLRPCServer
 
@@ -45,6 +46,13 @@ class App:
             random_node_index = random.randint(0, len(self._nodes) - 1)
             return self._nodes[random_node_index]
 
+    # diagnostics
+
+    def get_nodes(self) -> List[str]:
+        return self._nodes
+
+    # end diagnostics
+
     def run_server(self):
         server = SimpleXMLRPCServer((self.ip, self.port))
 
@@ -52,6 +60,7 @@ class App:
         server.register_function(self.put)
         server.register_function(self.request_join)
         server.register_function(self.confirm_join)
+        server.register_function(self.get_nodes)
 
         server.serve_forever()
 
