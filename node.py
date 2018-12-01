@@ -1,5 +1,6 @@
 import argparse
 import sys
+from typing import Dict
 from xmlrpc.client import ServerProxy
 from xmlrpc.server import SimpleXMLRPCServer
 
@@ -66,6 +67,7 @@ class Node:
 
     def find_successor(self, id: int) -> str:
         if not self._successor:
+            print(f"find successor, returning self: {self.address}")
             return self.address
 
         successor_id = generate_id(self._successor)
@@ -106,10 +108,24 @@ class Node:
     def _join(self, ring_address: str) -> None:
         random_node = ServerProxy(ring_address)
         self._successor = random_node.find_successor(self._id)
+        print(f"_join: {ring_address} {self._id} {self._successor}")
 
     def _create(self) -> None:
         print("-- Ring Created -- Initial Node -- ")
         return
+
+    # diagnostics
+
+    def get_id(self) -> int:
+        return self._id
+
+    def get_successor(self) -> (str, int):
+        return self._successor, generate_id(self._successor)
+
+    def get_store(self) -> Dict[str, str]:
+        return self._store
+
+    # end diagnostics
 
     def run_server(self) -> None:
         app = ServerProxy(self._app)
