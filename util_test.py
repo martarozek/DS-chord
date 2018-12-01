@@ -1,7 +1,7 @@
 import unittest
 import random
 from typing import Generator
-from util import hash_key, Address
+from util import hash_key, get_url
 
 
 class TestHashMethods(unittest.TestCase):
@@ -53,19 +53,9 @@ class TestHashMethods(unittest.TestCase):
 
 class TestAddress(unittest.TestCase):
     def test_get_merged(self):
-        add = Address("localhost", 4242)
+        address = get_url("localhost", 4242)
 
-        merged = add.get_merged()
-
-        self.assertEqual("http://localhost:4242", merged)
-
-    def test_from_merged(self):
-        merged = "http://localhost:4242"
-
-        address = Address.from_merged(merged)
-
-        self.assertEqual("localhost", address.ip)
-        self.assertEqual(4242, address.port)
+        self.assertEqual("http://localhost:4242", address)
 
 
 if __name__ == "__main__":

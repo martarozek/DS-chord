@@ -3,17 +3,19 @@ import sys
 from xmlrpc.client import ServerProxy
 from xmlrpc.server import SimpleXMLRPCServer
 
-from util import generate_id, in_range, Address
+from util import generate_id, in_range, get_url
 
 
 class Node:
     def __init__(self, ip: str, port: int, app_address: str = None) -> None:
-        self.address = Address(ip, port)
-        self._id = self.address.get_id()
+        self.address = get_url(ip, port)
+        self.ip = ip
+        self.port = port
+        self._id = generate_id(self.address)
         self._store = {}
 
-        self._successor = Address()
-        self._predecessor = Address()
+        self._successor = ""
+        self._predecessor = ""
 
         self._app = app_address
 
@@ -26,22 +28,21 @@ class Node:
         x = self._successor
         if not x:
             return
-        
-        succ = ServerProxy(x.get_merged())
+
+        succ = ServerProxy(x)
         pred = succ._stabilize_get_successors_predecessor()
         if pred:
-            pred_address = Address.from_merged(pred)
-            pred_id = pred_address.get_id()
+            pred_id = generate_id(pred)
 
             if pred_id == self._id:
                 return
-            if in_range(pred_id, self._id, self._successor):
+            if in_range(pred_id, self._id, generate_id(self._successor)):
                 return
         return
 
     def _stabilize_get_successors_predecessor(self) -> str:
         if self._predecessor:
-            return self._predecessor.get_merged()
+            return self._predecessor
         print ("STABILIZE_GET_SUCCESSORS_PREDECESSOR = PREDECESSOR NOT FOUND")
         return ""
 
@@ -51,7 +52,7 @@ class Node:
         if node_address == self.address:
             return self._get(key)
 
-        node = ServerProxy(node_address.get_merged())
+        node = ServerProxy(node_address)
         return node.get(key)
 
     def put(self, key: str, value: str) -> str:
@@ -60,25 +61,25 @@ class Node:
         if node_address == self.address:
             return self._put(key, value)
 
-        node = ServerProxy(node_address.get_merged())
+        node = ServerProxy(node_address)
         return node.put(key, value)
 
-    def find_successor(self, id: int) -> Address:
+    def find_successor(self, id: int) -> str:
         if not self._successor:
             return self.address
 
-        successor_id = self._successor.get_id()
+        successor_id = generate_id(self._successor)
         if in_range(id, self._id, successor_id):
             return self._successor
         else:
-            my_successor = ServerProxy(self._successor.get_merged())
+            my_successor = ServerProxy(self._successor)
             return my_successor.find_successor(id)
 
     # TBD
-    def find_predecessor(self, id: str) -> Address:
-        return Address()
+    def find_predecessor(self, id: str) -> str:
+        return ""
 
-    def _look_up(self, key: str) -> Address:
+    def _look_up(self, key: str) -> str:
         return self.find_successor(generate_id(key))
 
     def _get(self, key: str) -> str:
@@ -96,26 +97,30 @@ class Node:
         else:
             app = ServerProxy(app_address)
 
-            ring_address = app.request_join(self.address.get_merged())
+            ring_address = app.request_join(self.address)
             if ring_address:
                 self._join(ring_address)
             else:
                 self._create()
 
-            app.confirm_join(self.address.get_merged())
-
     def _join(self, ring_address: str) -> None:
-        print(ring_address)
         random_node = ServerProxy(ring_address)
         self._successor = random_node.find_successor(self._id)
 
     def _create(self) -> None:
-        print ("-- Ring Created -- Initial Node -- ")
-        # self._successor = self.address -> WIP
+        print("-- Ring Created -- Initial Node -- ")
         return
 
+    def run_server(self) -> None:
+        app = ServerProxy(self._app)
+        app.confirm_join(self.address)
 
-def run_server() -> None:
+        server = SimpleXMLRPCServer((self.ip, self.port))
+        server.register_instance(self)
+        server.serve_forever()
+
+
+if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Start a Chord node.")
     parser.add_argument(
         "--ip",
@@ -136,19 +141,11 @@ def run_server() -> None:
     )
 
     args = parser.parse_args()
-
     node = Node(args.ip, args.port, args.app)
+    print(f"Serving Node on {args.ip} port {args.port}")
 
-    server = SimpleXMLRPCServer((node.address.ip, node.address.port))
-    server.register_instance(node)
-
-    print(f"Serving XML-RPC on {node.address.ip} port {node.address.port}")
     try:
-        server.serve_forever()
+        node.run_server()
     except KeyboardInterrupt:
         print("\nKeyboard interrupt received, exiting.")
         sys.exit(0)
-
-
-if __name__ == "__main__":
-    run_server()
