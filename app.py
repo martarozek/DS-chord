@@ -39,6 +39,12 @@ class App:
         self._nodes.append(address)
         return True
 
+    def notify_leave(self, address: str) -> bool:
+        if address in self._nodes:
+            self._nodes.remove(address)
+            return True
+        return False
+
     def _pick_random_node(self) -> str:
         if len(self._nodes) == 0:
             return ""
@@ -56,11 +62,7 @@ class App:
     def run_server(self):
         server = SimpleXMLRPCServer((self.ip, self.port))
 
-        server.register_function(self.get)
-        server.register_function(self.put)
-        server.register_function(self.request_join)
-        server.register_function(self.confirm_join)
-        server.register_function(self.get_nodes)
+        server.register_instance(self)
 
         server.serve_forever()
 

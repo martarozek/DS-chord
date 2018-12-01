@@ -66,7 +66,7 @@ class Node:
         return node.put(key, value)
 
     def find_successor(self, id: int) -> str:
-        if not self._successor:
+        if self._successor == self.address:
             print(f"find successor, returning self: {self.address}")
             return self.address
 
@@ -77,9 +77,16 @@ class Node:
             my_successor = ServerProxy(self._successor)
             return my_successor.find_successor(id)
 
-    # TBD
-    def find_predecessor(self, id: str) -> str:
-        return ""
+    def leave(self) -> None:
+        app = ServerProxy(self._app)
+        app.notify_leave(self.address)
+
+        if self._predecessor and self._successor != self.address:
+            my_predecessor = ServerProxy(self._predecessor)
+            my_predecessor.set_successor(self._successor)
+
+            my_successor = ServerProxy(self._successor)
+            my_successor.set_predecessor(self._predecessor)
 
     def _look_up(self, key: str) -> str:
         return self.find_successor(generate_id(key))
@@ -111,8 +118,8 @@ class Node:
         print(f"_join: {ring_address} {self._id} {self._successor}")
 
     def _create(self) -> None:
+        self._successor = self.address
         print("-- Ring Created -- Initial Node -- ")
-        return
 
     # diagnostics
 
@@ -164,4 +171,5 @@ if __name__ == "__main__":
         node.run_server()
     except KeyboardInterrupt:
         print("\nKeyboard interrupt received, exiting.")
+        node.leave()
         sys.exit(0)
