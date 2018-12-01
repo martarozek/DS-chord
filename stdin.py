@@ -1,6 +1,6 @@
 from xmlrpc.client import ServerProxy
 
-from util import Address
+from util import get_url
 from config import APP_PORT, APP_IP
 
 
@@ -22,6 +22,5 @@ def user_input(app):
             print("Option not available. Try again.")
 
 if __name__ == '__main__':
-    add = Address(APP_IP, APP_PORT)
-    app = ServerProxy(add.get_merged())
+    app = ServerProxy(get_url(APP_IP, APP_PORT))
     user_input(app)
