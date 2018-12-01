@@ -22,10 +22,10 @@ class TestNode(unittest.TestCase):
         res = get_client(app).get_nodes()
         self.assertCountEqual(["http://localhost:8042", "http://localhost:8044"], res)
 
-        # res = get_client('http://localhost:8042').get_successor()
-        # self.assertEqual(('http://localhost:8044', 18), res)
-        # res = get_client('http://localhost:8044').get_successor()
-        # self.assertEqual(('http://localhost:8042', 33), res)
+        res = get_client('http://localhost:8042').get_successor()
+        self.assertEqual(['http://localhost:8044', 18], res)
+        res = get_client('http://localhost:8044').get_successor()
+        self.assertEqual(['http://localhost:8042', 33], res)
 
         res = get_client(app).put("key", "value")
         self.assertEqual("value", res)
@@ -54,11 +54,11 @@ class TestNode(unittest.TestCase):
         key_id = generate_id("apple")
         self.assertEqual(0, key_id)
 
-        # res = get_client('http://localhost:8042').get_store()
-        # self.assertEqual({'key': 'value'}, res)
-        #
-        # res = get_client('http://localhost:8044').get_store()
-        # self.assertEqual({'apple': 'banana'}, res)
+        res = get_client('http://localhost:8042').get_store()
+        self.assertEqual({'key': 'value'}, res)
+
+        res = get_client('http://localhost:8044').get_store()
+        self.assertEqual({'apple': 'banana'}, res)
 
 
 if __name__ == "__main__":

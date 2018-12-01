@@ -1,5 +1,7 @@
 import argparse
 import sys
+import threading
+import time
 from typing import Dict
 from xmlrpc.client import ServerProxy
 from xmlrpc.server import SimpleXMLRPCServer
@@ -17,35 +19,55 @@ class Node:
 
         self._successor = ""
         self._predecessor = ""
+        self._finger = {}
 
         self._app = app_address
 
-        # start the stabilize and fixfingers daemons
-        self._daemons = []
+        stabilize = threading.Thread(target=self._stabilize, daemon=True)
+        stabilize.start()
+
+        fix_fingers = threading.Thread(target=self._fix_fingers, daemon=True)
+        fix_fingers.start()
+
         self._join_or_create(self._app)
 
     def _stabilize(self) -> None:
-        # x = successor.predecessor
-        x = self._successor
-        if not x:
-            return
+        while True:
+            time.sleep(0.5)
 
-        succ = ServerProxy(x)
-        pred = succ._stabilize_get_successors_predecessor()
-        if pred:
-            pred_id = generate_id(pred)
+            if self._successor == self.address:
+                new_successor = self._predecessor
+            else:
+                successor = ServerProxy(self._successor)
+                new_successor = successor.get_predecessor()
 
-            if pred_id == self._id:
-                return
-            if in_range(pred_id, self._id, generate_id(self._successor)):
-                return
-        return
+            if new_successor:
+                new_id = generate_id(new_successor)
+                old_id = generate_id(self._successor)
 
-    def _stabilize_get_successors_predecessor(self) -> str:
-        if self._predecessor:
-            return self._predecessor
-        print("STABILIZE_GET_SUCCESSORS_PREDECESSOR = PREDECESSOR NOT FOUND")
-        return ""
+                if in_range(new_id, self._id, old_id):
+                    self._successor = new_successor
+
+            successor = ServerProxy(self._successor)
+            print(f"notifying {self._successor}")
+            successor.notify(self.address)
+
+    def _fix_fingers(self) -> None:
+        while True:
+            time.sleep(0.5)
+
+    def get_predecessor(self) -> str:
+        print(f"get_predecessor, returning {self._predecessor}")
+        return self._predecessor
+
+    def notify(self, new_predecessor: str) -> bool:
+        old_id = generate_id(self._predecessor)
+        new_id = generate_id(new_predecessor)
+        if not self._predecessor or in_range(new_id, old_id, self._id):
+            self._predecessor = new_predecessor
+
+        print(f"got notified, current predecessor {self._predecessor}")
+        return True
 
     def get(self, key: str) -> str:
         node_address = self._look_up(key)
@@ -76,6 +98,9 @@ class Node:
         else:
             my_successor = ServerProxy(self._successor)
             return my_successor.find_successor(id)
+
+    def closest_preceding_node(self, id: int) -> str:
+        pass
 
     def leave(self) -> None:
         app = ServerProxy(self._app)
