@@ -43,7 +43,7 @@ class Node:
     def _stabilize_get_successors_predecessor(self) -> str:
         if self._predecessor:
             return self._predecessor
-        print ("STABILIZE_GET_SUCCESSORS_PREDECESSOR = PREDECESSOR NOT FOUND")
+        print("STABILIZE_GET_SUCCESSORS_PREDECESSOR = PREDECESSOR NOT FOUND")
         return ""
 
     def get(self, key: str) -> str:
