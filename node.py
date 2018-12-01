@@ -88,6 +88,14 @@ class Node:
             my_successor = ServerProxy(self._successor)
             my_successor.set_predecessor(self._predecessor)
 
+    def set_successor(self, address: str) -> str:
+        self._successor = address
+        return self._successor
+
+    def set_predecessor(self, address: str) -> str:
+        self._predecessor = address
+        return self._predecessor
+
     def _look_up(self, key: str) -> str:
         return self.find_successor(generate_id(key))
 
