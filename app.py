@@ -22,6 +22,7 @@ class App:
             raise Fault(500, "No nodes available")
 
         with ServerProxy(random_node) as node:
+            # print(f"get {key}, node: {random_node}")
             return node.get(key)
 
     def put(self, key: str, value: str) -> str:
@@ -30,6 +31,7 @@ class App:
             raise Fault(500, "No nodes available")
 
         with ServerProxy(random_node) as node:
+            # print(f"put {key} {value}, node: {random_node}")
             return node.put(key, value)
 
     def request_join(self, address: str) -> str:
@@ -38,6 +40,12 @@ class App:
     def confirm_join(self, address: str) -> bool:
         self._nodes.append(address)
         return True
+
+    def notify_leave(self, address: str) -> bool:
+        if address in self._nodes:
+            self._nodes.remove(address)
+            return True
+        return False
 
     def _pick_random_node(self) -> str:
         if len(self._nodes) == 0:
@@ -56,11 +64,7 @@ class App:
     def run_server(self):
         server = SimpleXMLRPCServer((self.ip, self.port))
 
-        server.register_function(self.get)
-        server.register_function(self.put)
-        server.register_function(self.request_join)
-        server.register_function(self.confirm_join)
-        server.register_function(self.get_nodes)
+        server.register_instance(self)
 
         server.serve_forever()
 
