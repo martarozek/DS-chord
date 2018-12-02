@@ -70,8 +70,10 @@ class Node:
         while True:
             time.sleep(5)
 
+            self._mutex.acquire()
             self._finger[next] = self.find_successor((self._id + 2**next) % SIZE)
             next = (next + 1) % LOGSIZE
+            self._mutex.release()
 
     def get_predecessor(self) -> str:
         # print(f"get_predecessor, returning {self._predecessor}")
