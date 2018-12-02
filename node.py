@@ -134,6 +134,7 @@ class Node:
 
             my_successor = ServerProxy(self._successor)
             my_successor.set_predecessor(self._predecessor)
+            my_successor.takeover_store(self._store)
         self._mutex.release()
 
     def set_successor(self, address: str) -> str:
@@ -149,6 +150,10 @@ class Node:
         self._mutex.release()
 
         return self._predecessor
+
+    def takeover_store(self, store: Dict[str, str]) -> Dict[str, str]:
+        self._store = {**self._store, **store}
+        return self._store
 
     def _look_up(self, key: str) -> str:
         res = self.find_successor(generate_id(key))
