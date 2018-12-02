@@ -1,9 +1,4 @@
-# CONFIGURATIONS FILE
-# This file serves as an internal configurations file
-
-# --Variables will be declared, people will not be happy--
-
-# Maximal size of the ring will be 64
+# Maximal size of the ring is 64
 LOGSIZE = 6
 SIZE = 1 << LOGSIZE
 
