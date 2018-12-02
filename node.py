@@ -7,6 +7,7 @@ from xmlrpc.client import ServerProxy
 from xmlrpc.server import SimpleXMLRPCServer
 
 from util import generate_id, in_range, get_url
+from config import LOGSIZE, SIZE
 
 
 class Node:
@@ -19,7 +20,7 @@ class Node:
 
         self._successor = ""
         self._predecessor = ""
-        self._finger = {}
+        self._finger = ["" for i in range(LOGSIZE)]
 
         self._app = app_address
 
@@ -65,8 +66,12 @@ class Node:
             successor.notify(self.address)
 
     def _fix_fingers(self) -> None:
+        next = 0
         while True:
-            time.sleep(0.5)
+            time.sleep(5)
+
+            self._finger[next] = self.find_successor((self._id + 2**next) % SIZE)
+            next = (next + 1) % LOGSIZE
 
     def get_predecessor(self) -> str:
         # print(f"get_predecessor, returning {self._predecessor}")
@@ -113,15 +118,21 @@ class Node:
             if in_range(id, self._id, successor_id):
                 successor = self._successor
             else:
-                my_successor = ServerProxy(self._successor)
-                successor = my_successor.find_successor(id)
+                cpn = ServerProxy(self.closest_preceding_node(id))
+                successor = cpn.find_successor(id)
         self._mutex.release()
 
         # print(f"find successor, returning: {successor}")
         return successor
 
     def closest_preceding_node(self, id: int) -> str:
-        pass
+        for i in range(LOGSIZE):
+            finger = self._finger[LOGSIZE - i - 1]
+            finger_id = generate_id(finger)
+            if finger and in_range(finger_id, self._id, id):
+                return finger
+
+        return self.address
 
     def leave(self) -> None:
         app = ServerProxy(self._app)
@@ -139,6 +150,7 @@ class Node:
     def set_successor(self, address: str) -> str:
         self._mutex.acquire()
         self._successor = address
+        self._finger[0] = address
         self._mutex.release()
 
         return self._successor
