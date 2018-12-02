@@ -22,6 +22,7 @@ class App:
             raise Fault(500, "No nodes available")
 
         with ServerProxy(random_node) as node:
+            # print(f"get {key}, node: {random_node}")
             return node.get(key)
 
     def put(self, key: str, value: str) -> str:
@@ -30,6 +31,7 @@ class App:
             raise Fault(500, "No nodes available")
 
         with ServerProxy(random_node) as node:
+            # print(f"put {key} {value}, node: {random_node}")
             return node.put(key, value)
 
     def request_join(self, address: str) -> str:
