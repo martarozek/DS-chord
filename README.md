@@ -23,7 +23,7 @@ python node.py --port=8044
 ```
 * run tests, e.g.
 ```
-python multiple_node_test.py
+python multiple_nodes_test.py
 ```
 ## Notes
 To update requirements, add a new line with the package name you want to add (without version) to the `requirements.in` file and then run:
