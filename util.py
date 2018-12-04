@@ -17,10 +17,15 @@ def generate_id(key: str) -> int:
     return int(hash_key(key), 16) % SIZE
 
 
-def in_range(id: int, a: int, b: int) -> bool:
-    if a < b:
-        return a < id <= b
-    return id > a or id <= b
+def in_range(id: int, a: int, b: int, exclude_b: bool=False) -> bool:
+    if exclude_b:
+        if a < b:
+            return a < id < b
+        return id > a or id < b
+    else:
+        if a < b:
+            return a < id <= b
+        return id > a or id <= b
 
 
 def get_url(ip: str, port: int, https: bool = False) -> str:

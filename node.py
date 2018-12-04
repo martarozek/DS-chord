@@ -39,8 +39,6 @@ class Node:
         while True:
             time.sleep(5)
 
-            self._mutex.acquire()
-
             if self._successor == self.address:
                 new_successor = self._predecessor
             else:
@@ -51,7 +49,7 @@ class Node:
                 new_id = generate_id(new_successor)
                 old_id = generate_id(self._successor)
 
-                if in_range(new_id, self._id, old_id):
+                if in_range(new_id, self._id, old_id, exclude_b=True):
                     self._successor = new_successor
 
             if self._successor == self.address:
@@ -61,8 +59,6 @@ class Node:
 
             # print(f"notifying {self._successor}")
 
-            self._mutex.release()
-
             successor.notify(self.address)
 
     def _fix_fingers(self) -> None:
@@ -70,25 +66,21 @@ class Node:
         while True:
             time.sleep(5)
 
-            self._mutex.acquire()
             self._finger[next] = self.find_successor((self._id + 2**next) % SIZE)
             next = (next + 1) % LOGSIZE
-            self._mutex.release()
 
     def get_predecessor(self) -> str:
         # print(f"get_predecessor, returning {self._predecessor}")
         return self._predecessor
 
     def notify(self, new_predecessor: str) -> bool:
-        self._mutex.acquire()
-
         old_id = generate_id(self._predecessor)
         new_id = generate_id(new_predecessor)
-        if not self._predecessor or in_range(new_id, old_id, self._id):
+        if not self._predecessor or in_range(new_id, old_id, self._id, exclude_b=True):
             self._predecessor = new_predecessor
 
-        self._mutex.release()
         # print(f"got notified, current predecessor {self._predecessor}")
+
         return True
 
     def get(self, key: str) -> str:
@@ -112,7 +104,6 @@ class Node:
         return node.put_final(key, value)
 
     def find_successor(self, id: int) -> str:
-        self._mutex.acquire()
         successor = self.address
 
         if self._successor != self.address:
@@ -120,9 +111,9 @@ class Node:
             if in_range(id, self._id, successor_id):
                 successor = self._successor
             else:
-                cpn = ServerProxy(self.closest_preceding_node(id))
+                cpn_address = self.closest_preceding_node(id)
+                cpn = ServerProxy(cpn_address)
                 successor = cpn.find_successor(id)
-        self._mutex.release()
 
         # print(f"find successor, returning: {successor}")
         return successor
@@ -131,16 +122,14 @@ class Node:
         for i in range(LOGSIZE):
             finger = self._finger[LOGSIZE - i - 1]
             finger_id = generate_id(finger)
-            if finger and in_range(finger_id, self._id, id):
+            if finger and in_range(finger_id, self._id, id, exclude_b=True):
                 return finger
-
         return self.address
 
     def leave(self) -> None:
         app = ServerProxy(self._app)
         app.notify_leave(self.address)
 
-        self._mutex.acquire()
         if self._predecessor and self._successor != self.address:
             my_predecessor = ServerProxy(self._predecessor)
             my_predecessor.set_successor(self._successor)
@@ -148,20 +137,15 @@ class Node:
             my_successor = ServerProxy(self._successor)
             my_successor.set_predecessor(self._predecessor)
             my_successor.takeover_store(self._store)
-        self._mutex.release()
 
     def set_successor(self, address: str) -> str:
-        self._mutex.acquire()
         self._successor = address
         self._finger[0] = address
-        self._mutex.release()
 
         return self._successor
 
     def set_predecessor(self, address: str) -> str:
-        self._mutex.acquire()
         self._predecessor = address
-        self._mutex.release()
 
         return self._predecessor
 
@@ -171,7 +155,6 @@ class Node:
 
     def _look_up(self, key: str) -> str:
         res = self.find_successor(generate_id(key))
-
         return res
 
     def get_final(self, key: str) -> str:
@@ -195,17 +178,13 @@ class Node:
             self._create()
 
     def _join(self, ring_address: str) -> None:
-        self._mutex.acquire()
         random_node = ServerProxy(ring_address)
         self._successor = random_node.find_successor(self._id)
-        self._mutex.release()
         # print(f"_join: {ring_address} {self._id} {self._successor}")
 
     def _create(self) -> None:
-        self._mutex.acquire()
         self._successor = self.address
-        self._mutex.release()
-        # print("-- Ring Created -- Initial Node -- ")
+        # print(f"_create: {self._id} {self._successor}")
 
     # diagnostics
 
@@ -213,9 +192,7 @@ class Node:
         return self._id
 
     def get_successor(self) -> (str, int):
-        self._mutex.acquire()
         successor_id = generate_id(self._successor)
-        self._mutex.release()
         return self._successor, successor_id
 
     def get_store(self) -> Dict[str, str]:
