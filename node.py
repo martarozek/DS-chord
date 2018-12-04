@@ -18,7 +18,6 @@ class Node:
         self._id = generate_id(self.address)
         self._store = {}
 
-        self._successor = ""
         self._predecessor = ""
         self._finger = ["" for i in range(LOGSIZE)]
 
@@ -39,23 +38,23 @@ class Node:
         while True:
             time.sleep(5)
 
-            if self._successor == self.address:
+            if self._finger[0] == self.address:
                 new_successor = self._predecessor
             else:
-                successor = ServerProxy(self._successor)
+                successor = ServerProxy(self._finger[0])
                 new_successor = successor.get_predecessor()
 
             if new_successor:
                 new_id = generate_id(new_successor)
-                old_id = generate_id(self._successor)
+                old_id = generate_id(self._finger[0])
 
                 if in_range(new_id, self._id, old_id, exclude_b=True):
-                    self._successor = new_successor
+                    self._finger[0] = new_successor
 
-            if self._successor == self.address:
+            if self._finger[0] == self.address:
                 successor = self
             else:
-                successor = ServerProxy(self._successor)
+                successor = ServerProxy(self._finger[0])
 
             # print(f"notifying {self._successor}")
 
@@ -106,10 +105,10 @@ class Node:
     def find_successor(self, id: int) -> str:
         successor = self.address
 
-        if self._successor != self.address:
-            successor_id = generate_id(self._successor)
+        if self._finger[0] != self.address:
+            successor_id = generate_id(self._finger[0])
             if in_range(id, self._id, successor_id):
-                successor = self._successor
+                successor = self._finger[0]
             else:
                 cpn_address = self.closest_preceding_node(id)
                 cpn = ServerProxy(cpn_address)
@@ -130,19 +129,19 @@ class Node:
         app = ServerProxy(self._app)
         app.notify_leave(self.address)
 
-        if self._predecessor and self._successor != self.address:
+        if self._predecessor and self._finger[0] != self.address:
             my_predecessor = ServerProxy(self._predecessor)
-            my_predecessor.set_successor(self._successor)
+            my_predecessor.set_successor(self._finger[0])
 
-            my_successor = ServerProxy(self._successor)
+            my_successor = ServerProxy(self._finger[0])
             my_successor.set_predecessor(self._predecessor)
             my_successor.takeover_store(self._store)
 
     def set_successor(self, address: str) -> str:
-        self._successor = address
+        self._finger[0] = address
         self._finger[0] = address
 
-        return self._successor
+        return self._finger[0]
 
     def set_predecessor(self, address: str) -> str:
         self._predecessor = address
@@ -179,11 +178,11 @@ class Node:
 
     def _join(self, ring_address: str) -> None:
         random_node = ServerProxy(ring_address)
-        self._successor = random_node.find_successor(self._id)
+        self._finger[0] = random_node.find_successor(self._id)
         # print(f"_join: {ring_address} {self._id} {self._successor}")
 
     def _create(self) -> None:
-        self._successor = self.address
+        self._finger[0] = self.address
         # print(f"_create: {self._id} {self._successor}")
 
     # diagnostics
@@ -192,8 +191,8 @@ class Node:
         return self._id
 
     def get_successor(self) -> (str, int):
-        successor_id = generate_id(self._successor)
-        return self._successor, successor_id
+        successor_id = generate_id(self._finger[0])
+        return self._finger[0], successor_id
 
     def get_store(self) -> Dict[str, str]:
         return self._store
