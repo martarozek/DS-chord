@@ -217,7 +217,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--ip",
         type=str,
-        default="localhost",
+        default="127.0.0.1",
         required=False,
         help="ip address of the node",
     )
@@ -227,7 +227,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--app",
         type=str,
-        default="http://localhost:8000",
+        default="http://127.0.0.1:8000",
         required=False,
         help="address of the app, {protocol}://{ip}:{port}",
     )
