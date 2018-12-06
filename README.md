@@ -25,6 +25,9 @@ python node.py --port=8044
 ```
 python multiple_nodes_test.py
 ```
+## Performance
+This project has not been implemented with performance in mind. We used Python and XML-RPC, which are known to provide lower performance than, say, C++ and its rpclib. Also, the app serves requests sequentially, so the more nodes, the more communication overhead, but not more speed. We focused on readability and simplicity.
+
 ## Notes
 To update requirements, add a new line with the package name you want to add (without version) to the `requirements.in` file and then run:
 ```
