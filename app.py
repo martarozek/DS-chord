@@ -6,6 +6,7 @@ from xmlrpc.server import SimpleXMLRPCServer
 
 from util import get_url
 from config import APP_PORT, APP_IP
+from spawn_node import get_ip_port
 
 
 class App:
@@ -70,8 +71,15 @@ class App:
 
 
 if __name__ == "__main__":
-    app = App(APP_IP, APP_PORT)
-    print(f"Serving App on {APP_IP} port {APP_PORT}")
+    # DAS 4 Config
+    # app = App(APP_IP, APP_PORT)
+    ip, port = get_ip_port()
+    f = open("app.out", "w+")
+    f.write(f"http://{ip}:{port}")
+    f.close()
+
+    app = App(ip, int(port))
+    # print(f"Serving App on {APP_IP} port {APP_PORT}")
     try:
         app.run_server()
     except KeyboardInterrupt:

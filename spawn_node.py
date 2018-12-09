@@ -27,12 +27,25 @@ def get_ip_port():
     return IP, PORT
 
 
-print (get_ip_port())
-ip, port = get_ip_port()
-print(ip)
-print(port)
 
-param1 = ["--ip", ip]
-param2 = ["--port", port]
+def spawn_node():
+    f = open("app.out", "r")
+    app_address = f.readline()
+    f.close()
+    print(app_address)
 
-subprocess.call(["python","node.py"] + param1 + param2, shell=False)
+
+    print (get_ip_port())
+    ip, port = get_ip_port()
+    print(ip)
+    print(port)
+
+    param1 = ["--ip", ip]
+    param2 = ["--port", port]
+    param3 = ["--app", app_address]
+
+    subprocess.call(["python3","application/node.py"] + param1 + param2 + param3, shell=False)
+
+
+if __name__ == "__main__":
+    spawn_node()
