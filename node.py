@@ -8,6 +8,7 @@ from xmlrpc.server import SimpleXMLRPCServer
 
 from util import generate_id, in_range, get_url
 from config import LOGSIZE, SIZE
+from timer import timing
 
 
 class Node:
@@ -82,6 +83,7 @@ class Node:
 
         return True
 
+    @timing
     def get(self, key: str) -> str:
         node_address = self._look_up(key)
 
@@ -92,6 +94,7 @@ class Node:
 
         return node.get_final(key)
 
+    @timing
     def put(self, key: str, value: str) -> str:
         node_address = self._look_up(key)
 
