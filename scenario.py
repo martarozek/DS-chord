@@ -2,7 +2,7 @@ import argparse
 import random, string
 from xmlrpc.client import ServerProxy
 from util import get_url
-from config import APP_PORT, APP_IP
+from config import APP_PORT, APP_IP, _DEBUG
 from spawn_node import get_ip_port
 
 # function for create a random value
@@ -14,8 +14,11 @@ def randomword():
 def scenario(app, get_num: int, put_num: int) -> None:
     for i in range(put_num):
         app.put(i, randomword())
-    for i in range(get_num):
-        app.get(i)
+    
+    with open("scenario.txt", 'w+') as output:
+        for i in range(get_num):
+            output.write(f"{i} value = {app.get(i)}\n")
+    output.close()
 
 
 if __name__ == "__main__":
@@ -27,17 +30,18 @@ if __name__ == "__main__":
         "--put", type=int, default=0, required=False, help="number of put calls"
     )
 
-    # READ FILE FOR APP IP+PORT
-    # args = parser.parse_args()
-    # app = ServerProxy(get_url(APP_IP, APP_PORT))
-    # scenario(app, args.get, args.put)
+    if _DEBUG:
+        args = parser.parse_args()
+        app = ServerProxy(get_url(APP_IP, APP_PORT))
+        scenario(app, args.get, args.put)
+    else:    
+        # READ FILE FOR APP IP+PORT
+        f = open("app.out", "r")
+        app_address = f.readline()
+        f.close()
+        print(app_address)
 
-    f = open("app.out", "r")
-    app_address = f.readline()
-    f.close()
-    print(app_address)
-
-    args = parser.parse_args()
-    app = ServerProxy(app_address)
-    scenario(app, args.get, args.put)
+        args = parser.parse_args()
+        app = ServerProxy(app_address)
+        scenario(app, args.get, args.put)
 
