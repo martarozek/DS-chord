@@ -4,6 +4,7 @@ from xmlrpc.client import ServerProxy
 from util import get_url
 from config import APP_PORT, APP_IP, _DEBUG
 from spawn_node import get_ip_port
+from timer import timing
 
 # function for create a random value
 def randomword():
@@ -11,6 +12,7 @@ def randomword():
     return "".join(random.choice(letters) for i in range(10))
 
 
+@timing
 def scenario(app, get_num: int, put_num: int) -> None:
     for i in range(put_num):
         app.put(i, randomword())
