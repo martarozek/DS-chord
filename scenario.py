@@ -3,6 +3,7 @@ import random, string
 from xmlrpc.client import ServerProxy
 from util import get_url
 from config import APP_PORT, APP_IP
+from spawn_node import get_ip_port
 
 # function for create a random value
 def randomword():
@@ -26,6 +27,17 @@ if __name__ == "__main__":
         "--put", type=int, default=0, required=False, help="number of put calls"
     )
 
+    # READ FILE FOR APP IP+PORT
+    # args = parser.parse_args()
+    # app = ServerProxy(get_url(APP_IP, APP_PORT))
+    # scenario(app, args.get, args.put)
+
+    f = open("app.out", "r")
+    app_address = f.readline()
+    f.close()
+    print(app_address)
+
     args = parser.parse_args()
-    app = ServerProxy(get_url(APP_IP, APP_PORT))
+    app = ServerProxy(app_address)
     scenario(app, args.get, args.put)
+
