@@ -13,14 +13,20 @@ def randomword():
 
 
 @timing
-def scenario(app, get_num: int, put_num: int) -> None:
+def scenario(app, get_num: int, put_num: int, rem_num: int) -> None:
     for i in range(put_num):
         app.put(i, randomword())
     
-    with open("scenario.txt", 'w+') as output:
-        for i in range(get_num):
-            output.write(f"{i} value = {app.get(i)}\n")
-    output.close()
+    # with open("scenario.txt", 'w+') as output:
+    #     for i in range(get_num):
+    #         output.write(f"{i} value = {app.get(i % put_num)}\n")
+    # output.close()
+
+    for i in range(get_num):
+        app.get(i % put_num)
+
+    for i in range(rem_num):
+        app.delete(i % put_num)
 
 
 if __name__ == "__main__":
@@ -31,11 +37,14 @@ if __name__ == "__main__":
     parser.add_argument(
         "--put", type=int, default=0, required=False, help="number of put calls"
     )
+    parser.add_argument(
+        "--rem", type=int, default=0, required=False, help="number of remove calls"
+    )
 
     if _DEBUG:
         args = parser.parse_args()
         app = ServerProxy(get_url(APP_IP, APP_PORT))
-        scenario(app, args.get, args.put)
+        scenario(app, args.get, args.put, args.rem)
     else:    
         # READ FILE FOR APP IP+PORT
         f = open("app.out", "r")
@@ -45,5 +54,5 @@ if __name__ == "__main__":
 
         args = parser.parse_args()
         app = ServerProxy(app_address)
-        scenario(app, args.get, args.put)
+        scenario(app, args.get, args.put, args.rem)
 
