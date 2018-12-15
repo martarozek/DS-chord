@@ -105,6 +105,17 @@ class Node:
 
         return node.put_final(key, value)
 
+    @timing
+    def delete(self, key: str) -> str:
+        node_address = self._look_up(key)
+
+        if node_address == self.address:
+            node = self
+        else:
+            node = ServerProxy(node_address)
+
+        return node.delete_final(key)
+
     def find_successor(self, id: int) -> str:
         successor = self.address
 
@@ -169,6 +180,12 @@ class Node:
         # print(f"put {key} {value}")
         self._store[key] = value
         return self._store[key]
+
+    def delete_final(self, key: str) -> str:
+        # print(f"delete {key}")
+        if key in self._store:
+            return self._store.pop(key)
+        return ""
 
     def _join_or_create(self, app_address: str) -> None:
         app = ServerProxy(app_address)

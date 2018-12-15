@@ -26,6 +26,15 @@ class App:
             # print(f"get {key}, node: {random_node}")
             return node.get(key)
 
+    def delete(self, key: str) -> str:
+        random_node = self._pick_random_node()
+        if not random_node:
+            raise Fault(500, "No nodes available")
+
+        with ServerProxy(random_node) as node:
+            # print(f"delete {key}, node: {random_node}")
+            return node.delete(key)
+
     def put(self, key: str, value: str) -> str:
         random_node = self._pick_random_node()
         if not random_node:
