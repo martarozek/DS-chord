@@ -8,4 +8,11 @@ appdirs==1.4.3            # via black
 attrs==18.2.0             # via black
 black==18.9b0
 click==7.0                # via black
+cycler==0.10.0            # via matplotlib
+kiwisolver==1.0.1         # via matplotlib
+matplotlib==3.0.2
+numpy==1.15.4
+pyparsing==2.3.0          # via matplotlib
+python-dateutil==2.7.5    # via matplotlib
+six==1.12.0               # via cycler, python-dateutil
 toml==0.10.0              # via black

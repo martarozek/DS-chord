@@ -4,7 +4,7 @@ import xmlrpc.client
 from util import get_url
 from config import APP_PORT, APP_IP
 
-rounds = 100
+rounds = 1000
 
 
 def get_client(address: str):
@@ -30,6 +30,12 @@ class TestNode(unittest.TestCase):
 
             res = get_client(app).get(f"key{i}")
             self.assertEqual(f"value{i}", res)
+
+            res = get_client(app).delete(f"key{i}")
+            self.assertEqual(f"value{i}", res)
+
+            res = get_client(app).get(f"key{i}")
+            self.assertEqual("", res)
 
 
 if __name__ == "__main__":
