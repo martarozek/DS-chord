@@ -4,7 +4,7 @@ import xmlrpc.client
 from util import get_url
 from config import APP_PORT, APP_IP
 
-rounds = 1000
+rounds = 100
 
 
 def get_client(address: str):
