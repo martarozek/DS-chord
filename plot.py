@@ -7,11 +7,11 @@ mpl.use("TkAgg")
 import matplotlib.pylab as plt
 
 filenames = [
-    "measure_1.csv",
-    "measure_2.csv",
-    "measure_4.csv",
-    "measure_8.csv",
-    "measure_16.csv",
+    "measure_4_1.csv",
+    "measure_4_2.csv",
+    "measure_4_4.csv",
+    "measure_4_8.csv",
+    "measure_4_16.csv",
 ]
 
 gets = []
@@ -72,8 +72,8 @@ p_delete = plt.bar(ind + width / 3, delete_means, width / 3, yerr=delete_stds)
 
 plt.ylabel("Average request round trip time on one node")
 plt.xlabel("Number of nodes")
-plt.xticks(ind, [(2 ** i) for i in range(0, N)])
-plt.legend((p_get[0], p_put[0], p_delete[0]), ("Get", "Put", "Delete"))
+plt.xticks(ind, [4*(2 ** i) for i in range(0, N)])
+plt.legend((p_get[0], p_put[0], p_delete[0]), ("Get", "Put", "Delete"), loc=2)
 plt.show()
 
 
